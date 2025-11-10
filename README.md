@@ -121,4 +121,25 @@ port.on('open', () => {
 port.on('error', err => {
   console.error('Error:', err.message);
 });
+```
+-------------------------------------
+## ✅ Results
+- Schematic validated
+- PCB designed + fabricated
+- Magnetometer + IMU functional
+- Heading + angle extracted
+- System ready for testing
 
+-------------------------------------
+## 🔮 Future Work
+- Kalman filtering
+- Flight sim integration
+- Hybrid RF + fused-sensor design
+- ML-based correction
+- Real aircraft testing
+
+-------------------------------------
+## 👨‍💻 Team
+Shashank B  
+S. Vaishnavi  
+Sathvik S  
