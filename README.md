@@ -30,6 +30,26 @@ This enables angle/heading estimation without dependence on RF systems.
 ## 📁 Project Structure
 
 ---
+## 📸 Hardware Design & Fabrication
+
+### ✅ Schematic (KiCad)
+The schematic integrates STM32L152RCTx with MPU-6050 IMU, LIS3MDL magnetometer, and DS3231 real-time clock over I²C.
+
+<img width="837" height="685" alt="image" src="https://github.com/user-attachments/assets/3897d83b-be98-4e63-9097-fc05e5883f2e" />
+
+
+---
+
+### ✅ Fabricated PCB
+Custom fabricated PCB featuring:
+- STM32L152RCTx microcontroller
+- MPU-6050 IMU
+- LIS3MDL magnetometer
+- DS3231 RTC
+
+#### 🔷 Top View
+<img width="798" height="808" alt="image" src="https://github.com/user-attachments/assets/4858a506-8ff1-41b8-a2ab-e3d5ff29ee4a" />
+
 
 ## 🧰 Hardware Components
 
