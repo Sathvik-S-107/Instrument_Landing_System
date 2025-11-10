@@ -33,18 +33,16 @@ Our fused sensor approach reduces EMI and provides reliable landing guidance.
 -------------------------------------
 ## 📁 Project Structure
 
-ILS-Fused-Sensors/
-│
-├── hardware/
-│   ├── schematics/
-│   ├── pcb/
-│
-├── firmware/
-│   ├── src/
-│   ├── include/
-│
-├── docs/
-└── README.md
+- ILS-Fused-Sensors/
+  - hardware/
+    - schematics/
+    - pcb/
+  - firmware/
+    - src/
+    - include/
+  - docs/
+  - README.md
+
 
 -------------------------------------
 ## 📡 Background
