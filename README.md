@@ -1,118 +1,124 @@
-# 🛬 Instrument Landing System (ILS) using Fused Sensors
+# 🛬 Instrument Landing System (ILS) Using Fused Sensors
 
-A hardware-based Instrument Landing System prototype using fused inertial sensors (magnetometer + gyroscope) and an STM32 microcontroller to estimate aircraft landing path and reduce EMI-related guidance errors.
+A hardware-based Instrument Landing System prototype that integrates a magnetometer + gyroscope with an STM32 microcontroller to estimate aircraft orientation and landing approach, aiming to reduce EMI-related inaccuracies seen in antenna-based ILS systems.
 
--------------------------------------
-## 🚀 Objective
-Develop an ILS-like landing guidance system using:
-- STM32
-- MPU6050 (Gyro + Accelerometer)
-- LIS3MDL (Magnetometer)
-- Custom PCB
-- Sensor fusion algorithms
+---
 
--------------------------------------
-## 📌 Motivation
-Traditional ILS uses antennas placed closely, causing:
-- Electromagnetic interference (EMI)
-- Glide slope distortion
-- Pilot misguidance
-- Higher landing risk
+## 🚀 Overview
 
-Our fused sensor approach reduces EMI and provides reliable landing guidance.
+Conventional ILS systems rely on radio antennas placed near runways. Their close proximity may cause electromagnetic interference (EMI), distorting glide-slope data and increasing landing risk.
 
--------------------------------------
+This project proposes an alternative/add-on system using:
+✅ Inertial measurement (IMU + magnetometer)  
+✅ STM32-based processing  
+✅ Custom PCB  
+
+This enables angle/heading estimation without dependence on RF systems.
+
+---
+
 ## ✨ Features
-- STM32-based control
-- IMU + magnetometer fusion
-- Custom PCB design + fabrication
-- EMI-tolerant navigation data
-- Heading + angular output
-- Real-time sensing
+- Sensor-fusion based ILS assistance
+- STM32 processing
+- Magnetometer + Gyroscope integration
+- PCB design + fabrication (KiCad / Flux)
+- IMU + Magnetometer offset calibration
+- Real-time heading + angular output
 
--------------------------------------
+---
+
 ## 📁 Project Structure
 
-- ILS-Fused-Sensors/
-  - hardware/
-    - schematics/
-    - pcb/
-  - firmware/
-    - src/
-    - include/
-  - docs/
-  - README.md
+---
 
+## 🧰 Hardware Components
 
--------------------------------------
-## 📡 Background
-ILS supports landing using:
-- Localizer → horizontal guidance
-- Glide slope → vertical guidance
+| Component | Description |
+|-----------|-------------|
+| STM32 MCU | Core controller |
+| MPU6050   | IMU – Gyro + Accelerometer |
+| LIS3MDL   | Magnetometer |
+| DS3231M   | Real-Time Clock |
+| Custom PCB | Sensor & signal stage |
 
-Antenna interference distorts glide-slope signals → risky landings.  
-This project explores IMU-based replacement/backup to avoid EMI.
+---
 
--------------------------------------
-## 🧰 Hardware Used
-STM32 MCU  
-MPU6050  
-LIS3MDL Magnetometer  
-DS3231M RTC  
-Voltage Divider  
-Custom PCB  
-
--------------------------------------
-## 🛠️ Methodology
-1) Sensor acquisition  
-2) Schematic design  
-3) PCB layout  
-4) Fabrication  
-5) Assembly  
-6) Sensor fusion  
-7) Output analysis  
-
--------------------------------------
 ## 🔄 System Flow
-Sensors → Fusion → STM32 → Landing guidance output  
 
--------------------------------------
-## ✅ Results
-- Schematic validated
-- PCB designed + fabricated
-- Magnetometer + IMU functional
-- Heading + angle extracted
-- System ready for testing
+Sensors → Sensor-Fusion → STM32 → Landing Guidance Output
 
--------------------------------------
-## 📊 Discussion
-Pros:
-- EMI-free  
-- Compact hardware  
-- Accurate heading  
+---
 
-Cons:
-- Requires calibration
-- Magnetic disturbances affect accuracy  
+## 🧾 Calibration Script (Node.js)
 
--------------------------------------
-## 🔮 Future Work
-- Kalman filtering
-- Flight sim integration
-- Hybrid RF + fused-sensor design
-- ML-based correction
-- Real aircraft testing
+This script reads gyro + magnetometer raw data from STM32 over serial, collects samples, and computes offsets.
 
--------------------------------------
-## 👨‍💻 Team
-Shashank B  
-S. Vaishnavi  
-Sathvik S  
+```js
+const SerialPort = require('serialport');
+const Readline = require('serialport/parser-readline');
 
-Under guidance of  
-Mrs. Bhavana HT  
-BMSCE, ECE Dept.
+const port = new SerialPort('/dev/ttyUSB0', { baudRate: 115200 });
+const parser = port.pipe(new Readline({ delimiter: '\n' }));
 
--------------------------------------
-## 📄 References
-Available in report.
+let gyroOffsets = [0, 0, 0];
+let magOffsets = [0, 0, 0];
+let gyroData = [];
+let magData = [];
+
+// Number of calibration samples
+const NUM_SAMPLES = 1000;
+
+function parseData(data) {
+  const [type, x, y, z] = data.split(',').map(Number);
+  if (type === 0) {
+    gyroData.push([x, y, z]);
+  } else if (type === 1) {
+    magData.push([x, y, z]);
+  }
+}
+
+function calculateOffsets() {
+  // Gyroscope calibration
+  let gyroSum = [0, 0, 0];
+  gyroData.forEach(([x, y, z]) => {
+    gyroSum[0] += x;
+    gyroSum[1] += y;
+    gyroSum[2] += z;
+  });
+  gyroOffsets = gyroSum.map(sum => sum / gyroData.length);
+
+  // Magnetometer calibration
+  let magMin = [Infinity, Infinity, Infinity];
+  let magMax = [-Infinity, -Infinity, -Infinity];
+  magData.forEach(([x, y, z]) => {
+    magMin[0] = Math.min(magMin[0], x);
+    magMin[1] = Math.min(magMin[1], y);
+    magMin[2] = Math.min(magMin[2], z);
+    magMax[0] = Math.max(magMax[0], x);
+    magMax[1] = Math.max(magMax[1], y);
+    magMax[2] = Math.max(magMax[2], z);
+  });
+
+  magOffsets = magMax.map((max, i) => (max + magMin[i]) / 2);
+
+  console.log('Gyro Offsets:', gyroOffsets);
+  console.log('Mag Offsets:', magOffsets);
+}
+
+parser.on('data', line => {
+  parseData(line.trim());
+  if (gyroData.length >= NUM_SAMPLES && magData.length >= NUM_SAMPLES) {
+    calculateOffsets();
+    port.close(); // Stop after calibration
+  }
+});
+
+port.on('open', () => {
+  console.log('Serial Port Opened');
+  port.write('START_CALIBRATION\n');
+});
+
+port.on('error', err => {
+  console.error('Error:', err.message);
+});
+
